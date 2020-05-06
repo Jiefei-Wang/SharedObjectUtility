@@ -10,3 +10,5 @@ src-x64/
 .Rproj
 *.Rproj
 
+src/*.o
+src/*.dll

@@ -7,6 +7,12 @@
   x
 }
 
+SharedSimpleAssays<-function(...){
+  data <- list(...)
+  as(data,"SharedSimpleAssays")
+}
+
+
 setAs("SharedSimpleList", "SharedSimpleAssays",function(from){
   x <- .SharedSimpleAssays()
   .data(x) <- from

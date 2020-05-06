@@ -20,9 +20,6 @@ setMethod("share","SimpleAssays",function(x,copyOnWrite,sharedSubset,sharedCopy,
 
 setMethod("share","SummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
   assays(x) <- tryShare(assays(x))
-  colData(x) <- tryShare(colData(x))
-  elementMetadata(x) <- tryShare(elementMetadata(x))
-  metadata(x) <- tryShare(metadata(x))
   x
 })
 setMethod("share","SharedSimpleList",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
