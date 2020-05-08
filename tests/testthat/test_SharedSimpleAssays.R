@@ -11,7 +11,7 @@ checkEqual<- function(x,y){
 m1 <- matrix(runif(24), ncol=3)
 m2 <- matrix(runif(24), ncol=3)
 a_list <- SimpleList(m1=m1,m2=m2)
-a_assays <- as(a_List, "SimpleAssays")
+a_assays <- as(a_list, "SimpleAssays")
 
 
 test_that("convert from SimpleList", {

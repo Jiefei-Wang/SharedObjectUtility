@@ -11,10 +11,12 @@
                               contains="SimpleAssays"
 )
 
-.SharedSimpleAssays <- setClass("SharedSummarizedExperiment",
+.SharedSummarizedExperiment <- setClass("SharedSummarizedExperiment",
                                 contains="SummarizedExperiment"
 )
-
+.SharedRangedSummarizedExperiment <- setClass("SharedRangedSummarizedExperiment",
+                                        contains="RangedSummarizedExperiment"
+)
 
 
 

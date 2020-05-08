@@ -1,9 +1,10 @@
-.listData <- function(x){
-  x@listData
+SimpleListDataSlot <- "listData"
+.SLData <- function(x){
+  slot(x,SimpleListDataSlot)
 }
 
-`.listData<-`<-function(x,value){
-  x@listData <- value
+`.SLData<-`<-function(x,value){
+  slot(x,SimpleListDataSlot) <- value
   x
 }
 
@@ -12,15 +13,18 @@
 
 SharedSimpleList <- function(..., copyOnWrite=getSharedObjectOptions("copyOnWrite"),
                              sharedSubset=getSharedObjectOptions("sharedSubset"),
-                             sharedCopy=getSharedObjectOptions("sharedCopy")){
-  rawData <- tryShare(list(...),
+                             sharedCopy=getSharedObjectOptions("sharedCopy"), parentData){
+  if(missing(parentData)){
+    parentData <- SimpleList(...)
+  }
+  x <- toSharedChildClass("SimpleList",parentData)
+  .SLData(x) <- tryShare(.SLData(x),
                       copyOnWrite=copyOnWrite,
                       sharedSubset=sharedSubset,
                       sharedCopy=sharedCopy)
-  x <- .SharedSimpleList(copyOnWrite=copyOnWrite,
-                         sharedSubset=sharedSubset,
-                         sharedCopy=sharedCopy)
-  .listData(x) <- rawData
+  x@copyOnWrite <- copyOnWrite
+  x@sharedSubset <- sharedSubset
+  x@sharedCopy <- sharedCopy
   x
 }
 
@@ -30,7 +34,7 @@ SharedSimpleList <- function(..., copyOnWrite=getSharedObjectOptions("copyOnWrit
   x <- .SharedSimpleList(copyOnWrite=getSharedObjectOptions("copyOnWrite"),
                          sharedSubset=getSharedObjectOptions("sharedSubset"),
                          sharedCopy=getSharedObjectOptions("sharedCopy"))
-  .listData(x) <- rawData
+  .SLData(x) <- rawData
   x
 }
 
@@ -40,22 +44,19 @@ setAs("vector", "SharedSimpleList",function(from){
 })
 
 setAs("list", "SharedSimpleList",function(from){
-  .shareList(from)
+  as(as(from,"SimpleList"),"SharedSimpleList")
 })
 
 setAs("List", "SharedSimpleList",function(from){
+  as(as(from,"SimpleList"),"SharedSimpleList")
+  
+})
+setAs("SimpleList", "SharedSimpleList",function(from){
   if(is(from,"SharedSimpleList")){
     return(from)
   }
-  x <- .shareList(from)
-  metadata(x) <- metadata(from)
-  mcols(x) <- mcols(from)
+  x <- SharedSimpleList(parentData = from)
   x
-})
-## This code must exist for dispatching method to 
-## the signature List
-setAs("SimpleList", "SharedSimpleList",function(from){
-  callNextMethod()
 })
 setAs("Assays", "SharedSimpleList",function(from){
   x <- as(from, "SimpleList")
@@ -82,7 +83,7 @@ setReplaceMethod("[[","SharedSimpleList",function(x,i,value){
 
 setMethod("c","SharedSimpleList",function(x,...){
   x <- callNextMethod()
-  .listData(x) <- tryShare(.listData(x),
+  .SLData(x) <- tryShare(.SLData(x),
                            copyOnWrite=x@copyOnWrite,
                            sharedSubset=x@sharedSubset,
                            sharedCopy=x@sharedCopy)

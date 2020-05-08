@@ -1,4 +1,4 @@
 library(testthat)
-library(SharedSummarizedExperiment)
+library(SharedObjectUtility)
 
-test_check("SharedSummarizedExperiment")
+test_check("SharedObjectUtility")

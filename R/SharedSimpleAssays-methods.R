@@ -1,27 +1,43 @@
-.data <- function(x){
-  x@data
+SimpleAssaysDataSlot<-"data"
+
+.SAdata <- function(x){
+  slot(x,SimpleAssaysDataSlot)
 }
 
-`.data<-`<-function(x,value){
-  x@data <- value
+`.SAdata<-`<-function(x,value){
+  slot(x,SimpleAssaysDataSlot) <- value
   x
 }
 
-SharedSimpleAssays<-function(...){
-  data <- list(...)
+SharedSimpleAssays<-function(..., copyOnWrite=getSharedObjectOptions("copyOnWrite"),
+                             sharedSubset=getSharedObjectOptions("sharedSubset"),
+                             sharedCopy=getSharedObjectOptions("sharedCopy"),
+                             parentData){
+  args <- list(...,
+               copyOnWrite=copyOnWrite,
+               sharedSubset=sharedSubset,
+               sharedCopy=sharedCopy)
+  
+  if(!missing(parentData)){
+    args <- c(args, parentData=as(parentData,"SimpleList"))
+  }
+  
+  data <- do.call("SharedSimpleList",args)
   as(data,"SharedSimpleAssays")
 }
 
 
 setAs("SharedSimpleList", "SharedSimpleAssays",function(from){
   x <- .SharedSimpleAssays()
-  .data(x) <- from
+  .SAdata(x) <- from
+  # x <- copySlots(parentData,x,SimpleAssaysDataSlot)
   x
 })
 setAs("SimpleList", "SharedSimpleAssays",function(from){
-  as(as(from, "SharedSimpleList"),"SharedSimpleAssays")
+  x <- as(as(from, "SharedSimpleList"),"SharedSimpleAssays")
+  x
 })
-
+## You must explicitly specify this type conversion
 setAs("SimpleAssays", "SharedSimpleAssays",function(from){
   as(as(from, "SimpleList"),"SharedSimpleAssays")
 })
@@ -30,7 +46,7 @@ setAs("ANY", "SharedSimpleAssays",function(from){
 })
 
 setAs("SharedSimpleAssays", "SharedSimpleList",function(from){
-  .data(from)
+  .SAdata(from)
 })
 setAs("SharedSimpleAssays", "SimpleList",function(from){
   as(as(from, "SharedSimpleList"), "SimpleList")
