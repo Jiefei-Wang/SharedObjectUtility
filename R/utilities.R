@@ -39,8 +39,8 @@ copyToParentClass <- function(x){
   res
 }
 
-toSharedChildClass <-function(class,x){
-  childClass <- paste0("Shared",class)
-  res <- new(childClass)
-  copySlots(class,x,res,NULL)
-}
+# toSharedChildClass <-function(class,x){
+#   childClass <- paste0("Shared",class)
+#   res <- new(childClass)
+#   copySlots(class,x,res,NULL)
+# }

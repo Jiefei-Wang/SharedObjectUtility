@@ -38,8 +38,9 @@ SharedSummarizedExperiment<-function(...,copyOnWrite=getSharedObjectOptions("cop
   if(missing(parentData)){
     parentData <- SummarizedExperiment(...)
   }
-  x <- toSharedChildClass("SummarizedExperiment",parentData)
+  x <- new("SharedSummarizedExperiment", parentData)
   x <- shareAssays(x,copyOnWrite,sharedSubset,sharedCopy)
+  x
 }
 
 
@@ -50,8 +51,9 @@ SharedRangedSummarizedExperiment<-function(...,copyOnWrite=getSharedObjectOption
   if(missing(parentData)){
     parentData <- RangedSummarizedExperiment(...)
   }
-  x <- toSharedChildClass("RangedSummarizedExperiment",parentData)
+  x <- new("SharedRangedSummarizedExperiment", parentData)
   x <- shareAssays(x,copyOnWrite,sharedSubset,sharedCopy)
+  x
 }
 
 

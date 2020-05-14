@@ -17,7 +17,7 @@ SharedSimpleList <- function(..., copyOnWrite=getSharedObjectOptions("copyOnWrit
   if(missing(parentData)){
     parentData <- SimpleList(...)
   }
-  x <- toSharedChildClass("SimpleList",parentData)
+  x <- new("SharedSimpleList", parentData)
   .SLData(x) <- tryShare(.SLData(x),
                       copyOnWrite=copyOnWrite,
                       sharedSubset=sharedSubset,
@@ -49,7 +49,6 @@ setAs("list", "SharedSimpleList",function(from){
 
 setAs("List", "SharedSimpleList",function(from){
   as(as(from,"SimpleList"),"SharedSimpleList")
-  
 })
 setAs("SimpleList", "SharedSimpleList",function(from){
   if(is(from,"SharedSimpleList")){

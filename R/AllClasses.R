@@ -6,10 +6,21 @@
                         sharedCopy = "logical"
                       )
 )
+.SharedRangedSummarizedExperiment <- setClass("SharedDataFrame",
+                                              contains="DataFrame",
+                                              representation(
+                                                copyOnWrite = "logical",
+                                                sharedSubset = "logical",
+                                                sharedCopy = "logical"
+                                              )
+)
+
 
 .SharedSimpleAssays <- setClass("SharedSimpleAssays",
                               contains="SimpleAssays"
 )
+
+
 
 .SharedSummarizedExperiment <- setClass("SharedSummarizedExperiment",
                                 contains="SummarizedExperiment"
