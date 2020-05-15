@@ -19,9 +19,9 @@ SharedSimpleList <- function(..., copyOnWrite=getSharedObjectOptions("copyOnWrit
   }
   x <- new("SharedSimpleList", parentData)
   .SLData(x) <- tryShare(.SLData(x),
-                      copyOnWrite=copyOnWrite,
-                      sharedSubset=sharedSubset,
-                      sharedCopy=sharedCopy)
+                         copyOnWrite=copyOnWrite,
+                         sharedSubset=sharedSubset,
+                         sharedCopy=sharedCopy)
   x@copyOnWrite <- copyOnWrite
   x@sharedSubset <- sharedSubset
   x@sharedCopy <- sharedCopy
@@ -67,14 +67,20 @@ setAs("Assays", "SharedSimpleList",function(from){
 ## names(<-),length,lengths,vertical_slot_names,
 ## [(<-),c,NROW,rename,nlevels,mcols,elementMetadata(<-),values(<-)
 setReplaceMethod("[","SharedSimpleList",function(x,i,j,...,value){
-  value <- tryShare(value,
-                    copyOnWrite=x@copyOnWrite,
-                    sharedSubset=x@sharedSubset,
-                    sharedCopy=x@sharedCopy)
+  if(is(value,"SimpleList")){
+    .SLData(value) <- tryShare(.SLData(value),copyOnWrite=x@copyOnWrite,
+                               sharedSubset=x@sharedSubset,
+                               sharedCopy=x@sharedCopy)
+  }else{
+    value <- tryShare(value,copyOnWrite=x@copyOnWrite,
+                      sharedSubset=x@sharedSubset,
+                      sharedCopy=x@sharedCopy)
+  }
   callNextMethod()
 })
 setReplaceMethod("[[","SharedSimpleList",function(x,i,value){
-  value <- tryShare(value,copyOnWrite=x@copyOnWrite,
+  value <- tryShare(value,
+                    copyOnWrite=x@copyOnWrite,
                     sharedSubset=x@sharedSubset,
                     sharedCopy=x@sharedCopy)
   callNextMethod()
@@ -83,9 +89,9 @@ setReplaceMethod("[[","SharedSimpleList",function(x,i,value){
 setMethod("c","SharedSimpleList",function(x,...){
   x <- callNextMethod()
   .SLData(x) <- tryShare(.SLData(x),
-                           copyOnWrite=x@copyOnWrite,
-                           sharedSubset=x@sharedSubset,
-                           sharedCopy=x@sharedCopy)
+                         copyOnWrite=x@copyOnWrite,
+                         sharedSubset=x@sharedSubset,
+                         sharedCopy=x@sharedCopy)
   x
 })
 

@@ -1,5 +1,8 @@
 #' @import methods
 #' @import SharedObject
 #' @import S4Vectors
-#' @importClassesFrom SummarizedExperiment SummarizedExperiment
+#' @import SummarizedExperiment
+#' @import IRanges
+#' @useDynLib SharedObjectUtility, .registration = TRUE
+#' @importFrom Rcpp sourceCpp
 NULL

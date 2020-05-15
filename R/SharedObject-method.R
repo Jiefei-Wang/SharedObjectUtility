@@ -1,202 +1,175 @@
 ###########################################
 ## share
 ###########################################
-# DataFrame is dispatched to this function
+## DataFrame is dispatched to this function
+## SimpleAtomicList
 setMethod("share","SimpleList",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  for(i in seq_along(x)){
-    x[[i]] <- share(x[[i]],
-                    copyOnWrite=copyOnWrite,
-                    sharedSubset=sharedSubset,
-                    sharedCopy=sharedCopy,
-                    mustWork=mustWork,...)
-  }
-  x
-})
-
-setMethod("share","SimpleAssays",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  x <- as(x, "SimpleList")
-  xSharedList <- share(x,
-                       copyOnWrite=copyOnWrite,
-                       sharedSubset=sharedSubset,
-                       sharedCopy=sharedCopy,
-                       mustWork=mustWork,...)
-  as(xSharedList, "SimpleAssays")
-})
-
-setMethod("share","SummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  assays(x) <- share(assays(x),
-                     copyOnWrite=copyOnWrite,
-                     sharedSubset=sharedSubset,
-                     sharedCopy=sharedCopy,
-                     mustWork=mustWork,...)
-  x
-})
-
-setMethod("share","Rle",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  # browser()
-  lengths <- share(runLength(x),
-                     copyOnWrite=copyOnWrite,
-                     sharedSubset=sharedSubset,
-                     sharedCopy=sharedCopy,
-                     mustWork=mustWork,...)
-  values <- share(runValue(x),
+    for(i in seq_along(x)){
+        x[[i]] <- share(x[[i]],
                         copyOnWrite=copyOnWrite,
                         sharedSubset=sharedSubset,
                         sharedCopy=sharedCopy,
                         mustWork=mustWork,...)
-  new("Rle",x,lengths=lengths,values = values)
+    }
+    x
+})
+
+setMethod("share","SimpleAssays",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
+    x <- as(x, "SimpleList")
+    xSharedList <- share(x,
+                         copyOnWrite=copyOnWrite,
+                         sharedSubset=sharedSubset,
+                         sharedCopy=sharedCopy,
+                         mustWork=mustWork,...)
+    as(xSharedList, "SimpleAssays")
+})
+
+setMethod("share","SummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
+    assays(x) <- share(assays(x),
+                       copyOnWrite=copyOnWrite,
+                       sharedSubset=sharedSubset,
+                       sharedCopy=sharedCopy,
+                       mustWork=mustWork,...)
+    x
+})
+
+setMethod("share","Rle",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
+    # browser()
+    lengths <- share(runLength(x),
+                     copyOnWrite=copyOnWrite,
+                     sharedSubset=sharedSubset,
+                     sharedCopy=sharedCopy,
+                     mustWork=mustWork,...)
+    values <- share(runValue(x),
+                    copyOnWrite=copyOnWrite,
+                    sharedSubset=sharedSubset,
+                    sharedCopy=sharedCopy,
+                    mustWork=mustWork,...)
+    new("Rle",x,lengths=lengths,values = values)
 })
 setMethod("share","LLint",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  x@bytes <- share(x@bytes,
-                   copyOnWrite=copyOnWrite,
-                   sharedSubset=sharedSubset,
-                   sharedCopy=sharedCopy)
-  x
+    x@bytes <- share(x@bytes,
+                     copyOnWrite=copyOnWrite,
+                     sharedSubset=sharedSubset,
+                     sharedCopy=sharedCopy,
+                     mustWork = TRUE)
+    x
 })
 
-## RleList is included
+## CompressedRleList is included
 setMethod("share","CompressedAtomicList",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  x@unlistData <- share(x@unlistData,
-                   copyOnWrite=copyOnWrite,
-                   sharedSubset=sharedSubset,
-                   sharedCopy=sharedCopy)
-  x
+    x@unlistData <- share(x@unlistData,
+                          copyOnWrite=copyOnWrite,
+                          sharedSubset=sharedSubset,
+                          sharedCopy=sharedCopy,
+                          mustWork,...)
+    x
 })
 
-
-
-
-setMethod("share","SharedSimpleList",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  x
+## We do not honor the accessor functions here
+## Because we know the object must be valid and
+## There is no need to do the validation. The
+## accessor function copies the object so that
+## it will turn the shared object into a regular object.
+setMethod("share","IRanges",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
+    x@start <- share(start(x),
+                     copyOnWrite=copyOnWrite,
+                     sharedSubset=sharedSubset,
+                     sharedCopy=sharedCopy,
+                     mustWork = TRUE)
+    x@width <- share(width(x),
+                     copyOnWrite=copyOnWrite,
+                     sharedSubset=sharedSubset,
+                     sharedCopy=sharedCopy,
+                     mustWork = TRUE)
+    x
 })
-setMethod("share","SharedSimpleAssays",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  x
-})
-setMethod("share","SharedSummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  x
-})
-setMethod("share","SharedRangedSummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  x
-})
-setMethod("share","SharedDataFrame",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-  x
-})
-
-
-
-
-
-
-
-standardSharedClass<- function(sourceClass,x,copyOnWrite,sharedSubset,sharedCopy,sharedClass){
-  xClass <- class(x)[1]
-  if(xClass!=sourceClass){
-    stop("The class <",xClass,"> has not been supported")
-  }
-  if(missing(sharedClass))
-    sharedClass <- paste0("Shared",capitalize(xClass))
-  
-  func <- get(sharedClass)
-  do.call(
-    func,
-    list(copyOnWrite = copyOnWrite,
-         sharedSubset = sharedSubset,
-         sharedCopy = sharedCopy,
-         parentData = x)
-  )
-}
-
-setMethod("toSharedClass","SimpleList",function(x,copyOnWrite,sharedSubset,sharedCopy,...){
-  standardSharedClass("SimpleList",x,copyOnWrite,sharedSubset,sharedCopy)
-})
-setMethod("toSharedClass","SimpleAssays",function(x,copyOnWrite,sharedSubset,sharedCopy,...){
-  standardSharedClass("SimpleAssays",x,copyOnWrite,sharedSubset,sharedCopy)
-})
-setMethod("toSharedClass","SummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,...){
-  standardSharedClass("SummarizedExperiment",x,copyOnWrite,sharedSubset,sharedCopy)
-})
-setMethod("toSharedClass","RangedSummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,...){
-  standardSharedClass("RangedSummarizedExperiment",x,copyOnWrite,sharedSubset,sharedCopy)
-})
-setMethod("toSharedClass","DataFrame",function(x,copyOnWrite,sharedSubset,sharedCopy,...){
-  standardSharedClass("DataFrame",x,copyOnWrite,sharedSubset,sharedCopy)
-})
-setMethod("toSharedClass","DFrame",function(x,copyOnWrite,sharedSubset,sharedCopy,...){
-  standardSharedClass("DFrame",x,copyOnWrite,sharedSubset,sharedCopy,"SharedDataFrame")
+setMethod("share","GRanges",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
+    seqnames(x) <- share(seqnames(x),
+                          copyOnWrite=copyOnWrite,
+                          sharedSubset=sharedSubset,
+                          sharedCopy=sharedCopy,
+                          mustWork = mustWork)
+    ranges(x) <- share(ranges(x),
+                     copyOnWrite=copyOnWrite,
+                     sharedSubset=sharedSubset,
+                     sharedCopy=sharedCopy,
+                     mustWork = mustWork)
+    strand(x) <- share(strand(x),
+                     copyOnWrite=copyOnWrite,
+                     sharedSubset=sharedSubset,
+                     sharedCopy=sharedCopy,
+                     mustWork = mustWork)
+    mcols(x) <- share(mcols(x),
+                       copyOnWrite=copyOnWrite,
+                       sharedSubset=sharedSubset,
+                       sharedCopy=sharedCopy,
+                       mustWork = mustWork)
+    x
 })
 
 
 ###########################################
 ## is.shared
 ###########################################
-setMethod("is.shared","List", function(x,...){
-  lapply(x, function(x,...)is.shared(x,...),...)
+setMethod("is.shared","List", function(x,recursive = FALSE,...){
+    res <- lapply(x, function(x,...)is.shared(x,recursive=recursive, ...),...)
+    if(!recursive){
+        res <- lapply(res, function(x)any(unlist(x)))
+    }
+    res
 })
 
-setMethod("is.shared","Assays", function(x,...){
-  n <- length(x)
-  res <- vector("list",length(n))
-  for(i in seq_len(n)){
-    res[[i]] <- is.shared(getListElement(x,i),...)
-  }
-  res
+setMethod("is.shared","Assays", function(x,recursive = FALSE,...){
+    n <- length(x)
+    res <- vector("list",length(n))
+    for(i in seq_len(n)){
+        res[[i]] <- is.shared(getListElement(x,i), recursive = recursive,...)
+    }
+    names(res) <- names(x)
+    res
 })
 
 
-setMethod("is.shared","SummarizedExperiment", function(x,...){
-  is.shared(slot(x,SummarizedExperimentDataSlot),...)
+setMethod("is.shared","SummarizedExperiment", function(x,recursive = FALSE,...){
+    res <- is.shared(assays(x,withDimnames = FALSE), recursive = recursive, ...)
+    res
 })
 
 
 setMethod("is.shared","Rle", function(x,...){
-  list(values = is.shared(runValue(x),...),
-       lengths = is.shared(runLength(x),...))
+    list(values = is.shared(runValue(x),...),
+         lengths = is.shared(runLength(x),...))
 })
 
 
 setMethod("is.shared","LLint", function(x,...){
-  is.shared(x@bytes,...)
-})
-
-setMethod("is.shared","CompressedAtomicList", function(x,internal = FALSE,...){
-  is.shared(x@unlistData,internal = internal,...)
+    is.shared(x@bytes,...)
 })
 
 
 
-
-
-setMethod("is.shared","SharedSimpleList", function(x,internal = FALSE,...){
-  if(internal)
-    callNextMethod()
-  else
-    TRUE
+setMethod("is.shared","CompressedAtomicList", function(x,recursive = FALSE,...){
+    is.shared(x@unlistData,recursive = recursive,...)
 })
 
-setMethod("is.shared","SharedSimpleAssays", function(x,internal = FALSE,...){
-  if(internal)
-    callNextMethod()
-  else
-    TRUE
+
+setMethod("is.shared","IRanges", function(x,...){
+    list(start = is.shared(start(x),...),
+         width = is.shared(width(x),...))
 })
 
-setMethod("is.shared","SharedSummarizedExperiment", function(x,internal = FALSE,...){
-  if(internal)
-    callNextMethod()
-  else
-    TRUE
+
+setMethod("is.shared","GRanges", function(x,recursive = FALSE,...){
+    res <- list(seqnames = is.shared(seqnames(x), recursive = recursive,...),
+         ranges = is.shared(ranges(x), recursive = recursive,...),
+         strand = is.shared(strand(x), recursive = recursive,...),
+         elementMetadata = is.shared(mcols(x), recursive = recursive,...))
+    if(!recursive){
+        res <- lapply(res, function(x) any(unlist(x)))
+    }
+    res
 })
 
-setMethod("is.shared","SharedRangedSummarizedExperiment", function(x,internal = FALSE,...){
-  if(internal)
-    callNextMethod()
-  else
-    TRUE
-})
 
-setMethod("is.shared","SharedDataFrame", function(x,internal = FALSE,...){
-  if(internal)
-    callNextMethod()
-  else
-    TRUE
-})
+
