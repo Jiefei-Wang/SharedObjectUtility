@@ -11,6 +11,7 @@ SimpleListDataSlot <- "listData"
 
 ####################### constructor ###################################
 
+#' @export
 SharedSimpleList <- function(..., copyOnWrite=getSharedObjectOptions("copyOnWrite"),
                              sharedSubset=getSharedObjectOptions("sharedSubset"),
                              sharedCopy=getSharedObjectOptions("sharedCopy"), parentData){
@@ -38,18 +39,23 @@ SharedSimpleList <- function(..., copyOnWrite=getSharedObjectOptions("copyOnWrit
   x
 }
 
+#' @export
 setAs("vector", "SharedSimpleList",function(from){
   from <- as.list(from)
   as(from, "SharedSimpleList")
 })
 
+#' @export
 setAs("list", "SharedSimpleList",function(from){
   as(as(from,"SimpleList"),"SharedSimpleList")
 })
 
+#' @export
 setAs("List", "SharedSimpleList",function(from){
   as(as(from,"SimpleList"),"SharedSimpleList")
 })
+
+#' @export
 setAs("SimpleList", "SharedSimpleList",function(from){
   if(is(from,"SharedSimpleList")){
     return(from)
@@ -57,6 +63,8 @@ setAs("SimpleList", "SharedSimpleList",function(from){
   x <- SharedSimpleList(parentData = from)
   x
 })
+
+#' @export
 setAs("Assays", "SharedSimpleList",function(from){
   x <- as(from, "SimpleList")
   as(x,"SharedSimpleList")
@@ -66,6 +74,7 @@ setAs("Assays", "SharedSimpleList",function(from){
 ####################### vector methods ###################################
 ## names(<-),length,lengths,vertical_slot_names,
 ## [(<-),c,NROW,rename,nlevels,mcols,elementMetadata(<-),values(<-)
+#' @export
 setReplaceMethod("[","SharedSimpleList",function(x,i,j,...,value){
   if(is(value,"SimpleList")){
     .SLData(value) <- tryShare(.SLData(value),copyOnWrite=x@copyOnWrite,
@@ -78,6 +87,7 @@ setReplaceMethod("[","SharedSimpleList",function(x,i,j,...,value){
   }
   callNextMethod()
 })
+#' @export
 setReplaceMethod("[[","SharedSimpleList",function(x,i,value){
   value <- tryShare(value,
                     copyOnWrite=x@copyOnWrite,
@@ -86,6 +96,7 @@ setReplaceMethod("[[","SharedSimpleList",function(x,i,value){
   callNextMethod()
 })
 
+#' @export
 setMethod("c","SharedSimpleList",function(x,...){
   x <- callNextMethod()
   .SLData(x) <- tryShare(.SLData(x),

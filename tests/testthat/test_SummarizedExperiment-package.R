@@ -5,17 +5,29 @@ nrows <- 200
 ncols <- 6
 counts1 <- matrix(runif(nrows * ncols, 1, 1e4), nrows)
 counts2 <- matrix(runif(nrows * ncols, 1, 1e4), nrows)
-countList <- SimpleList(counts1=counts1,counts2=counts2)
-countAssay <- as(countList,"SimpleAssays")
-countSummarizedExperiment <- SummarizedExperiment(assays=countList)
+counts3 <- list(counts1 = counts1, counts2 = counts2)
+countList <- SimpleList(counts1=counts1, counts2=counts2, counts3=counts3)
+countAssay <- as(countList[1:2],"SimpleAssays")
+countSummarizedExperiment <- SummarizedExperiment(assays=countList[1:2])
 
 test_that("share SimpleList", {
     x <- countList
     expect_error(x_shr <- share(x),NA)
     
     expect_equal(x_shr, x)
-    expect_length(is.shared(x_shr, recursive = TRUE),2)
-    expect_true(all(unlist(is.shared(x_shr))))
+    
+    ## Check is.share
+    check1 <- is.shared(x_shr, recursive = TRUE)
+    expect_length(check1, 3)
+    expect_length(check1[[3]], 2)
+    expect_true(all(unlist(check1)))
+    expect_identical(names(x),names(check1))
+    
+    check2 <- is.shared(x_shr, recursive = FALSE)
+    expect_length(check2, 3)
+    expect_length(check2[[3]], 1)
+    expect_true(all(unlist(check2)))
+    
 })
 
 test_that("share SimpleAssays", {
@@ -23,8 +35,12 @@ test_that("share SimpleAssays", {
     expect_error(x_shr <- share(x),NA)
     
     expect_equal(x_shr, x)
-    expect_length(is.shared(x_shr, recursive = TRUE),2)
-    expect_true(all(unlist(is.shared(x_shr))))
+    
+    ## Check is.share
+    check1 <- is.shared(x_shr, recursive = TRUE)
+    expect_length(check1,2)
+    expect_true(all(unlist(check1)))
+    expect_identical(names(x),names(check1))
 })
 
 test_that("share SummarizedExperiment", {
@@ -32,8 +48,12 @@ test_that("share SummarizedExperiment", {
     expect_error(x_shr <- share(x),NA)
     
     expect_equal(x_shr, x)
-    expect_length(is.shared(x_shr, recursive = TRUE),2)
-    expect_true(all(unlist(is.shared(x_shr))))
+    
+    ## Check is.share
+    check1 <- is.shared(x_shr, recursive = TRUE)
+    expect_length(check1,2)
+    expect_true(all(unlist(check1)))
+    expect_identical(assayNames(x),names(check1))
 })
 
 
@@ -43,8 +63,18 @@ test_that("SharedSimpleList", {
     expect_error(x_shr <- toSharedClass(x),NA)
     
     expect_true(is(x_shr, "SharedSimpleList"))
-    expect_length(is.shared(x_shr, recursive=TRUE),2)
-    expect_true(all(unlist(is.shared(x_shr,recursive=TRUE))))
+    
+    ## check is.shared
+    check1 <- is.shared(x_shr, recursive = TRUE)
+    expect_length(check1,3)
+    expect_length(check1[[3]], 2)
+    expect_true(all(unlist(check1)))
+    
+    check2 <- is.shared(x_shr, recursive = FALSE)
+    expect_length(check2, 3)
+    expect_length(check2[[3]], 1)
+    expect_true(all(unlist(check2)))
+    
     
     x_origin <- as(x_shr, "SimpleList")
     expect_equal(x,x_origin)

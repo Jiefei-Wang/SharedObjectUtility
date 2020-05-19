@@ -118,5 +118,25 @@ test_that("share IRanges", {
     expect_true(all(unlist(check2)))
 })
 
+test_that("share GRanges", {
+    x <- GRanges(Rle(c("chr2", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+                   IRanges(1:10, width=10:1))
+    expect_true(is(x, "GRanges"))
+    expect_error(x_shr <- share(x),NA)
+    
+    ## Check equality
+    expect_equal(x_shr, x)
+    
+    ## Check is.share
+    check1 <- is.shared(x_shr, recursive = TRUE)
+    expect_length(check1, 3)
+    expect_length(check1[[1]], 2)
+    expect_true(all(unlist(check1)))
+    
+    check2 <- is.shared(x_shr, recursive = FALSE)
+    expect_length(check2, 3)
+    expect_true(all(unlist(check2)))
+})
+
 
 

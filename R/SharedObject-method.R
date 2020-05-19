@@ -3,6 +3,7 @@
 ###########################################
 ## DataFrame is dispatched to this function
 ## SimpleAtomicList
+#' @export
 setMethod("share","SimpleList",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
     for(i in seq_along(x)){
         x[[i]] <- share(x[[i]],
@@ -14,6 +15,7 @@ setMethod("share","SimpleList",function(x,copyOnWrite,sharedSubset,sharedCopy,mu
     x
 })
 
+#' @export
 setMethod("share","SimpleAssays",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
     x <- as(x, "SimpleList")
     xSharedList <- share(x,
@@ -24,6 +26,7 @@ setMethod("share","SimpleAssays",function(x,copyOnWrite,sharedSubset,sharedCopy,
     as(xSharedList, "SimpleAssays")
 })
 
+#' @export
 setMethod("share","SummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
     assays(x) <- share(assays(x),
                        copyOnWrite=copyOnWrite,
@@ -33,6 +36,7 @@ setMethod("share","SummarizedExperiment",function(x,copyOnWrite,sharedSubset,sha
     x
 })
 
+#' @export
 setMethod("share","Rle",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
     # browser()
     lengths <- share(runLength(x),
@@ -47,6 +51,8 @@ setMethod("share","Rle",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,
                     mustWork=mustWork,...)
     new("Rle",x,lengths=lengths,values = values)
 })
+
+#' @export
 setMethod("share","LLint",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
     x@bytes <- share(x@bytes,
                      copyOnWrite=copyOnWrite,
@@ -57,6 +63,7 @@ setMethod("share","LLint",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWor
 })
 
 ## CompressedRleList is included
+#' @export
 setMethod("share","CompressedAtomicList",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
     x@unlistData <- share(x@unlistData,
                           copyOnWrite=copyOnWrite,
@@ -71,6 +78,7 @@ setMethod("share","CompressedAtomicList",function(x,copyOnWrite,sharedSubset,sha
 ## There is no need to do the validation. The
 ## accessor function copies the object so that
 ## it will turn the shared object into a regular object.
+#' @export
 setMethod("share","IRanges",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
     x@start <- share(start(x),
                      copyOnWrite=copyOnWrite,
@@ -84,13 +92,15 @@ setMethod("share","IRanges",function(x,copyOnWrite,sharedSubset,sharedCopy,mustW
                      mustWork = TRUE)
     x
 })
+
+#' @export
 setMethod("share","GRanges",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
     seqnames(x) <- share(seqnames(x),
                           copyOnWrite=copyOnWrite,
                           sharedSubset=sharedSubset,
                           sharedCopy=sharedCopy,
                           mustWork = mustWork)
-    ranges(x) <- share(ranges(x),
+    ranges(x) <- share(ranges(x, use.names=TRUE, use.mcols=FALSE),
                      copyOnWrite=copyOnWrite,
                      sharedSubset=sharedSubset,
                      sharedCopy=sharedCopy,
@@ -100,7 +110,7 @@ setMethod("share","GRanges",function(x,copyOnWrite,sharedSubset,sharedCopy,mustW
                      sharedSubset=sharedSubset,
                      sharedCopy=sharedCopy,
                      mustWork = mustWork)
-    mcols(x) <- share(mcols(x),
+    mcols(x) <- share(mcols(x, use.names = FALSE),
                        copyOnWrite=copyOnWrite,
                        sharedSubset=sharedSubset,
                        sharedCopy=sharedCopy,
@@ -112,6 +122,7 @@ setMethod("share","GRanges",function(x,copyOnWrite,sharedSubset,sharedCopy,mustW
 ###########################################
 ## is.shared
 ###########################################
+#' @export
 setMethod("is.shared","List", function(x,recursive = FALSE,...){
     res <- lapply(x, function(x,...)is.shared(x,recursive=recursive, ...),...)
     if(!recursive){
@@ -120,6 +131,7 @@ setMethod("is.shared","List", function(x,recursive = FALSE,...){
     res
 })
 
+#' @export
 setMethod("is.shared","Assays", function(x,recursive = FALSE,...){
     n <- length(x)
     res <- vector("list",length(n))
@@ -131,40 +143,47 @@ setMethod("is.shared","Assays", function(x,recursive = FALSE,...){
 })
 
 
+#' @export
 setMethod("is.shared","SummarizedExperiment", function(x,recursive = FALSE,...){
     res <- is.shared(assays(x,withDimnames = FALSE), recursive = recursive, ...)
     res
 })
 
 
+#' @export
 setMethod("is.shared","Rle", function(x,...){
     list(values = is.shared(runValue(x),...),
          lengths = is.shared(runLength(x),...))
 })
 
 
+#' @export
 setMethod("is.shared","LLint", function(x,...){
     is.shared(x@bytes,...)
 })
 
 
 
+#' @export
 setMethod("is.shared","CompressedAtomicList", function(x,recursive = FALSE,...){
     is.shared(x@unlistData,recursive = recursive,...)
 })
 
 
+#' @export
 setMethod("is.shared","IRanges", function(x,...){
     list(start = is.shared(start(x),...),
          width = is.shared(width(x),...))
 })
 
 
+#' @export
 setMethod("is.shared","GRanges", function(x,recursive = FALSE,...){
     res <- list(seqnames = is.shared(seqnames(x), recursive = recursive,...),
-         ranges = is.shared(ranges(x), recursive = recursive,...),
+         ranges = is.shared(ranges(x, use.names=TRUE, use.mcols=FALSE), recursive = recursive,...),
          strand = is.shared(strand(x), recursive = recursive,...),
-         elementMetadata = is.shared(mcols(x), recursive = recursive,...))
+         elementMetadata = is.shared(mcols(x, use.names = FALSE), recursive = recursive,...))
+    res <- res[unlist(lapply(res, function(x) length(x) != 0))]
     if(!recursive){
         res <- lapply(res, function(x) any(unlist(x)))
     }

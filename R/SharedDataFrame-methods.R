@@ -11,6 +11,7 @@ DataFrameDataSlot <- "listData"
 
 ####################### constructor ###################################
 
+#' @export
 SharedDataFrame <- function(..., copyOnWrite=getSharedObjectOptions("copyOnWrite"),
                             sharedSubset=getSharedObjectOptions("sharedSubset"),
                             sharedCopy=getSharedObjectOptions("sharedCopy"), parentData){
@@ -40,24 +41,30 @@ SharedDataFrame <- function(..., copyOnWrite=getSharedObjectOptions("copyOnWrite
   x
 }
 
+#' @export
 setAs("ANY","SharedDataFrame",function(from){
   as(as(from,"DataFrame"),"SharedDataFrame")
 })
+#' @export
 setAs("vector","SharedDataFrame",function(from){
   as(as(from,"DataFrame"),"SharedDataFrame")
 })
+#' @export
 setAs("list","SharedDataFrame",function(from){
   as(as(from,"DataFrame"),"SharedDataFrame")
 })
+#' @export
 setAs("List","SharedDataFrame",function(from){
   as(as(from,"list"),"SharedDataFrame")
 })
+#' @export
 setAs("DataFrame","SharedDataFrame",function(from){
   SharedDataFrame(parentData = from)
 })
 
 
 ####################### vector methods ###################################
+#' @export
 setMethod("[","SharedDataFrame",function(x,i,j,..., drop = TRUE){
   res <- callNextMethod()
   if(is(res,"DataFrame")){
@@ -70,6 +77,7 @@ setMethod("[","SharedDataFrame",function(x,i,j,..., drop = TRUE){
   }
 })
 
+#' @export
 setReplaceMethod("[","SharedDataFrame",function(x,i,j,...,value){
   res <- callNextMethod()
   SharedDataFrame(copyOnWrite=x@copyOnWrite,
@@ -78,6 +86,7 @@ setReplaceMethod("[","SharedDataFrame",function(x,i,j,...,value){
                   parentData = res)
 })
 
+#' @export
 setMethod("c","SharedDataFrame",function(x, ...){
   res <- callNextMethod()
   SharedDataFrame(copyOnWrite=x@copyOnWrite,
@@ -86,6 +95,7 @@ setMethod("c","SharedDataFrame",function(x, ...){
                   parentData = res)
 })
 
+#' @export
 setMethod("cbind","SharedDataFrame",function(..., deparse.level = 1){
   res <- callNextMethod()
   arg <- list(...)
@@ -96,6 +106,7 @@ setMethod("cbind","SharedDataFrame",function(..., deparse.level = 1){
                   parentData = res)
 })
 
+#' @export
 setMethod("rbind","SharedDataFrame",function(..., deparse.level = 1){
   res <- callNextMethod()
   arg <- list(...)
