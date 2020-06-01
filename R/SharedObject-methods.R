@@ -28,7 +28,7 @@ setMethod("share","SimpleAssays",function(x,copyOnWrite,sharedSubset,sharedCopy,
 
 #' @export
 setMethod("share","SummarizedExperiment",function(x,copyOnWrite,sharedSubset,sharedCopy,mustWork,...){
-    assays(x) <- share(assays(x),
+    x@assays <- share(x@assays,
                        copyOnWrite=copyOnWrite,
                        sharedSubset=sharedSubset,
                        sharedCopy=sharedCopy,
